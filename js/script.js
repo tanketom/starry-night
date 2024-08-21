@@ -3,14 +3,10 @@ const Engine = Matter.Engine,
       Render = Matter.Render,
       World = Matter.World,
       Bodies = Matter.Bodies,
-      Body = Matter.Body,
-      Events = Matter.Events,
-      Mouse = Matter.Mouse,
-      MouseConstraint = Matter.MouseConstraint;
+      Body = Matter.Body;
 
 // Create an engine
 const engine = Engine.create();
-engine.world.gravity.scale = 0.001; // Adjust gravity scale for better effect
 
 // Create a renderer and attach it to the canvas element
 const render = Render.create({
@@ -90,66 +86,3 @@ function updateMoons() {
 
 // Start updating the moons' positions
 updateMoons();
-
-// Add mouse control
-const mouse = Mouse.create(render.canvas);
-const mouseConstraint = MouseConstraint.create(engine, {
-    mouse: mouse,
-    constraint: {
-        stiffness: 0.2,
-        render: {
-            visible: false
-        }
-    }
-});
-World.add(engine.world, mouseConstraint);
-
-// Function to create a meteor
-function createMeteor(x, y) {
-    const meteor = Bodies.circle(x, y, 20, {
-        render: {
-            fillStyle: 'red'
-        }
-    });
-    World.add(engine.world, meteor);
-    return meteor;
-}
-
-// Event listener for mouse down to create a meteor
-let currentMeteor = null;
-Events.on(mouseConstraint, 'mousedown', function(event) {
-    const { mouse } = event.source;
-    currentMeteor = createMeteor(mouse.position.x, mouse.position.y);
-});
-
-// Event listener for mouse up to apply force to the meteor
-Events.on(mouseConstraint, 'mouseup', function(event) {
-    if (currentMeteor) {
-        const { mouse } = event.source;
-        const forceMagnitude = 0.05 * currentMeteor.mass;
-        const force = {
-            x: (mouse.position.x - currentMeteor.position.x) * forceMagnitude,
-            y: (mouse.position.y - currentMeteor.position.y) * forceMagnitude
-        };
-        Body.applyForce(currentMeteor, currentMeteor.position, force);
-        currentMeteor = null;
-    }
-});
-
-// Function to apply gravitational force from planet and moons
-function applyGravity() {
-    const bodies = Matter.Composite.allBodies(engine.world);
-    bodies.forEach(body => {
-        if (body !== planet && body !== moon1 && body !== moon2) {
-            [planet, moon1, moon2].forEach(attractor => {
-                const distance = Matter.Vector.magnitude(Matter.Vector.sub(attractor.position, body.position));
-                const forceMagnitude = (attractor.mass * body.mass) / Math.pow(distance, 2);
-                const force = Matter.Vector.mult(Matter.Vector.normalise(Matter.Vector.sub(attractor.position, body.position)), forceMagnitude);
-                Body.applyForce(body, body.position, force);
-            });
-        }
-    });
-}
-
-// Run the gravity function on each tick
-Events.on(engine, 'beforeUpdate', applyGravity);
