@@ -1,5 +1,5 @@
 // Module aliases
-const { Engine, Render, Runner, Bodies, Composite, Body, Events } = Matter;
+const { Engine, Render, Runner, Bodies, Composite, Body, Events, Vector } = Matter;
 
 // Create an engine
 const engine = Engine.create();
@@ -63,3 +63,49 @@ Events.on(engine, 'beforeUpdate', function() {
         });
     });
 });
+
+// Draw orbital paths
+const canvas = render.canvas;
+const context = canvas.getContext('2d');
+
+Events.on(render, 'afterRender', function() {
+    context.beginPath();
+    context.setLineDash([5, 5]);
+    context.strokeStyle = 'white';
+    planets.forEach(planet => {
+        const a = planet.distance;
+        const b = a * Math.sqrt(1 - planet.eccentricity * planet.eccentricity);
+        context.ellipse(sun.position.x, sun.position.y, a, b, 0, 0, 2 * Math.PI);
+    });
+    context.stroke();
+});
+
+// Focus on Earth initially
+let currentFocus = 2; // Index of Earth in the planets array
+function updateFocus() {
+    if (currentFocus === -1) {
+        Render.lookAt(render, {
+            min: { x: 0, y: 0 },
+            max: { x: window.innerWidth, y: window.innerHeight }
+        });
+    } else {
+        const body = currentFocus === -1 ? sun : planets[currentFocus].body;
+        Render.lookAt(render, {
+            min: { x: body.position.x - 200, y: body.position.y - 200 },
+            max: { x: body.position.x + 200, y: body.position.y + 200 }
+        });
+    }
+}
+
+document.getElementById('prev').addEventListener('click', () => {
+    currentFocus = (currentFocus - 1 + planets.length + 1) % (planets.length + 1) - 1;
+    updateFocus();
+});
+
+document.getElementById('next').addEventListener('click', () => {
+    currentFocus = (currentFocus + 1) % (planets.length + 1) - 1;
+    updateFocus();
+});
+
+// Initial focus on Earth
+updateFocus();
