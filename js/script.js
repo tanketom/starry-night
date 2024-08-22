@@ -34,32 +34,41 @@ Composite.add(world, [planet1, planet2, planet3]);
 const moon = Bodies.circle(planet2.position.x + 50, planet2.position.y, 10, { render: { fillStyle: 'gray' } });
 Composite.add(world, moon);
 
-// Add constraints to make planets and moon orbit
-const orbitRadius1 = 150;
-const orbitRadius2 = 300;
-const orbitRadius3 = 450;
-const moonOrbitRadius = 50;
-const orbitSpeed1 = 0.01;
-const orbitSpeed2 = 0.005;
-const orbitSpeed3 = 0.003;
-const moonOrbitSpeed = 0.02;
+// Set initial velocities for planets and moon
+Body.setVelocity(planet1, { x: 0, y: 2 });
+Body.setVelocity(planet2, { x: 0, y: 1.5 });
+Body.setVelocity(planet3, { x: 0, y: 1 });
+Body.setVelocity(moon, { x: 0, y: 2 });
 
+// Gravitational constant
+const G = 0.001;
+
+// Function to apply gravitational force between two bodies
+function applyGravity(bodyA, bodyB) {
+    const dx = bodyB.position.x - bodyA.position.x;
+    const dy = bodyB.position.y - bodyA.position.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const forceMagnitude = (G * bodyA.mass * bodyB.mass) / (distance * distance);
+    const force = {
+        x: (forceMagnitude * dx) / distance,
+        y: (forceMagnitude * dy) / distance
+    };
+    Body.applyForce(bodyA, bodyA.position, { x: force.x, y: force.y });
+    Body.applyForce(bodyB, bodyB.position, { x: -force.x, y: -force.y });
+}
+
+// Update loop to apply gravity
 Events.on(engine, 'beforeUpdate', function() {
-    Body.setPosition(planet1, {
-        x: sun.position.x + orbitRadius1 * Math.cos(engine.timing.timestamp * orbitSpeed1),
-        y: sun.position.y + orbitRadius1 * Math.sin(engine.timing.timestamp * orbitSpeed1)
-    });
-    Body.setPosition(planet2, {
-        x: sun.position.x + orbitRadius2 * Math.cos(engine.timing.timestamp * orbitSpeed2),
-        y: sun.position.y + orbitRadius2 * Math.sin(engine.timing.timestamp * orbitSpeed2)
-    });
-    Body.setPosition(planet3, {
-        x: sun.position.x + orbitRadius3 * Math.cos(engine.timing.timestamp * orbitSpeed3),
-        y: sun.position.y + orbitRadius3 * Math.sin(engine.timing.timestamp * orbitSpeed3)
-    });
-    Body.setPosition(moon, {
-        x: planet2.position.x + moonOrbitRadius * Math.cos(engine.timing.timestamp * moonOrbitSpeed),
-        y: planet2.position.y + moonOrbitRadius * Math.sin(engine.timing.timestamp * moonOrbitSpeed)
+    applyGravity(sun, planet1);
+    applyGravity(sun, planet2);
+    applyGravity(sun, planet3);
+    applyGravity(planet2, moon);
+
+    // Apply gravity to meteors
+    Composite.allBodies(world).forEach(body => {
+        if (body !== sun && body !== planet1 && body !== planet2 && body !== planet3 && body !== moon) {
+            applyGravity(sun, body);
+        }
     });
 });
 
@@ -68,21 +77,4 @@ document.getElementById('addMeteor').addEventListener('click', function() {
     const meteor = Bodies.circle(Math.random() * window.innerWidth, 0, 10, { render: { fillStyle: 'red' } });
     Body.setVelocity(meteor, { x: (sun.position.x - meteor.position.x) * 0.01, y: (sun.position.y - meteor.position.y) * 0.01 });
     Composite.add(world, meteor);
-});
-
-// Apply gravity to meteors
-Events.on(engine, 'beforeUpdate', function() {
-    Composite.allBodies(world).forEach(body => {
-        if (body !== sun && body !== planet1 && body !== planet2 && body !== planet3 && body !== moon) {
-            const dx = sun.position.x - body.position.x;
-            const dy = sun.position.y - body.position.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const forceMagnitude = (0.001 * sun.mass * body.mass) / (distance * distance);
-            const force = {
-                x: (forceMagnitude * dx) / distance,
-                y: (forceMagnitude * dy) / distance
-            };
-            Body.applyForce(body, body.position, force);
-        }
-    });
 });
