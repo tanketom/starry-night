@@ -57,6 +57,19 @@ planets.forEach(planet => {
             moon.planet = planet;
         });
     }
+
+    // Add rings for Saturn and Uranus
+    if (planet.name === 'Saturn' || planet.name === 'Uranus') {
+        const ring = Bodies.circle(planet.body.position.x, planet.body.position.y, planet.radius + 10, {
+            isStatic: true,
+            render: {
+                fillStyle: 'transparent',
+                strokeStyle: 'rgba(255, 255, 255, 0.5)',
+                lineWidth: 2
+            }
+        });
+        Composite.add(world, ring);
+    }
 });
 
 // Update planet and moon positions to follow elliptical orbits
@@ -86,9 +99,10 @@ Events.on(engine, 'beforeUpdate', function() {
 let currentFocus = 2; // Index of Earth in the planets array
 function updateFocus() {
     const body = currentFocus === -1 ? sun : planets[currentFocus].body;
+    const zoomOut = currentFocus === -1 ? 3 : 1;
     Render.lookAt(render, {
-        min: { x: body.position.x - 200, y: body.position.y - 200 },
-        max: { x: body.position.x + 200, y: body.position.y + 200 }
+        min: { x: body.position.x - 200 * zoomOut, y: body.position.y - 200 * zoomOut },
+        max: { x: body.position.x + 200 * zoomOut, y: body.position.y + 200 * zoomOut }
     });
 
     const planetName = currentFocus === -1 ? 'Sun' : planets[currentFocus].name;
