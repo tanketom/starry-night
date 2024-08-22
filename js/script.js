@@ -20,6 +20,16 @@ const render = Render.create({
 Render.run(render);
 Runner.run(Runner.create(), engine);
 
+// Make the canvas responsive
+window.addEventListener('resize', () => {
+    render.canvas.width = window.innerWidth;
+    render.canvas.height = window.innerHeight;
+    Render.lookAt(render, {
+        min: { x: 0, y: 0 },
+        max: { x: window.innerWidth, y: window.innerHeight }
+    });
+});
+
 // Create the sun
 const sun = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 50, { isStatic: true, render: { fillStyle: 'yellow' } });
 Composite.add(world, sun);
@@ -65,19 +75,33 @@ Events.on(engine, 'beforeUpdate', function() {
 
 // Add meteor on button click
 document.getElementById('addMeteor').addEventListener('click', function() {
-    const meteor = Bodies.circle(Math.random() * window.innerWidth, 0, 10, { render: { fillStyle: 'red' } });
+    const meteor = Bodies.circle(Math.random() * window.innerWidth, 0, 10, { label: 'meteor', render: { fillStyle: 'red' } });
     Body.setVelocity(meteor, { x: (sun.position.x - meteor.position.x) * 0.01, y: (sun.position.y - meteor.position.y) * 0.01 });
     Composite.add(world, meteor);
 });
 
-// Apply gravity to meteors
+// Collision detection
+Events.on(engine, 'collisionStart', (event) => {
+    const pairs = event.pairs;
+    pairs.forEach(pair => {
+        const { bodyA, bodyB } = pair;
+        if (bodyA.label === 'meteor' || bodyB.label === 'meteor') {
+            console.log('Collision detected between meteor and another body!');
+            // Add your collision handling logic here
+        }
+    });
+});
+
+// Enhanced gravity calculation
+const G = 0.001; // Gravitational constant
+
 Events.on(engine, 'beforeUpdate', function() {
     Composite.allBodies(world).forEach(body => {
         if (body !== sun && body !== planet1 && body !== planet2 && body !== planet3 && body !== moon) {
             const dx = sun.position.x - body.position.x;
             const dy = sun.position.y - body.position.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
-            const forceMagnitude = (0.001 * sun.mass * body.mass) / (distance * distance);
+            const forceMagnitude = (G * sun.mass * body.mass) / (distance * distance);
             const force = {
                 x: (forceMagnitude * dx) / distance,
                 y: (forceMagnitude * dy) / distance
