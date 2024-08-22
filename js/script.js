@@ -31,7 +31,9 @@ Composite.add(world, [moon1, moon2]);
 
 // Add constraints to make moons orbit the planet
 const orbitRadius = 100;
+const orbitRadius2 = 130;
 const orbitSpeed = 0.02;
+const orbitSpeed2 = 0.001;
 
 Events.on(engine, 'beforeUpdate', function() {
     Body.setPosition(moon1, {
@@ -39,8 +41,8 @@ Events.on(engine, 'beforeUpdate', function() {
         y: planet.position.y + orbitRadius * Math.sin(engine.timing.timestamp * orbitSpeed)
     });
     Body.setPosition(moon2, {
-        x: planet.position.x + orbitRadius * Math.cos(engine.timing.timestamp * orbitSpeed + Math.PI),
-        y: planet.position.y + orbitRadius * Math.sin(engine.timing.timestamp * orbitSpeed + Math.PI)
+        x: planet.position.x + orbitRadius2 * Math.cos(engine.timing.timestamp * orbitSpeed2 + Math.PI),
+        y: planet.position.y + orbitRadius2 * Math.sin(engine.timing.timestamp * orbitSpeed2 + Math.PI)
     });
 });
 
@@ -51,9 +53,23 @@ document.getElementById('addMeteor').addEventListener('click', function() {
     Composite.add(world, meteor);
 });
 
-// Add stars to the background
-const starCount = 100;
-for (let i = 0; i < starCount; i++) {
-    const star = Bodies.circle(Math.random() * 800, Math.random() * 600, 2, { isStatic: true, render: { fillStyle: 'white' } });
-    Composite.add(world, star);
+// Draw stars on the canvas background
+const canvas = render.canvas;
+const context = canvas.getContext('2d');
+
+function drawStars() {
+    const starCount = 100;
+    for (let i = 0; i < starCount; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        context.fillStyle = 'white';
+        context.beginPath();
+        context.arc(x, y, 2, 0, Math.PI * 2);
+        context.fill();
+    }
 }
+
+// Draw stars once the canvas is ready
+Events.on(render, 'afterRender', function() {
+    drawStars();
+});
