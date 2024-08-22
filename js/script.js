@@ -60,7 +60,7 @@ planets.forEach(planet => {
 
     // Add rings for Saturn and Uranus
     if (planet.name === 'Saturn' || planet.name === 'Uranus') {
-        const ring = Bodies.circle(planet.body.position.x, planet.body.position.y, planet.radius + 10, {
+        planet.ring = Bodies.circle(planet.body.position.x, planet.body.position.y, planet.radius + 10, {
             isStatic: true,
             render: {
                 fillStyle: 'transparent',
@@ -68,7 +68,7 @@ planets.forEach(planet => {
                 lineWidth: 2
             }
         });
-        Composite.add(world, ring);
+        Composite.add(world, planet.ring);
     }
 });
 
@@ -92,6 +92,14 @@ Events.on(engine, 'beforeUpdate', function() {
                 });
             });
         }
+
+        // Update ring position
+        if (planet.ring) {
+            Body.setPosition(planet.ring, {
+                x: planet.body.position.x,
+                y: planet.body.position.y
+            });
+        }
     });
 });
 
@@ -109,6 +117,11 @@ function updateFocus() {
     const planetInfo = currentFocus === -1 ? 'The Sun is the star at the center of our solar system.' : planets[currentFocus].info;
     document.getElementById('planetName').innerText = planetName;
     document.getElementById('planetInfo').innerText = planetInfo;
+
+    // Position the info box to the right of the focused planet
+    const infoBox = document.getElementById('info');
+    infoBox.style.left = `${body.position.x + 100}px`;
+    infoBox.style.top = `${body.position.y - 50}px`;
 }
 
 document.getElementById('prev').addEventListener('click', () => {
@@ -119,6 +132,17 @@ document.getElementById('prev').addEventListener('click', () => {
 document.getElementById('next').addEventListener('click', () => {
     currentFocus = (currentFocus + 1) % (planets.length + 1) - 1;
     updateFocus();
+});
+
+// Add event listeners for arrow keys
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowLeft') {
+        currentFocus = (currentFocus - 1 + planets.length + 1) % (planets.length + 1) - 1;
+        updateFocus();
+    } else if (event.key === 'ArrowRight') {
+        currentFocus = (currentFocus + 1) % (planets.length + 1) - 1;
+        updateFocus();
+    }
 });
 
 // Initial focus on Earth
@@ -132,5 +156,10 @@ Events.on(engine, 'afterUpdate', function() {
             min: { x: body.position.x - 200, y: body.position.y - 200 },
             max: { x: body.position.x + 200, y: body.position.y + 200 }
         });
+
+        // Update the position of the info box
+        const infoBox = document.getElementById('info');
+        infoBox.style.left = `${body.position.x + 100}px`;
+        infoBox.style.top = `${body.position.y - 50}px`;
     }
 });
