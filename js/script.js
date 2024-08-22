@@ -34,79 +34,32 @@ window.addEventListener('resize', () => {
 const sun = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 50, { isStatic: true, render: { fillStyle: 'yellow' } });
 Composite.add(world, sun);
 
-// Create the planets
-const planet1 = Bodies.circle(sun.position.x + 150, sun.position.y, 20, { render: { fillStyle: 'blue' } });
-const planet2 = Bodies.circle(sun.position.x + 300, sun.position.y, 30, { render: { fillStyle: 'green' } });
-const planet3 = Bodies.circle(sun.position.x + 450, sun.position.y, 25, { render: { fillStyle: 'red' } });
-Composite.add(world, [planet1, planet2, planet3]);
+// Create the planets with elliptical orbits
+const planets = [
+    { name: 'Mercury', radius: 10, distance: 100, color: 'gray', orbitSpeed: 0.02, eccentricity: 0.2 },
+    { name: 'Venus', radius: 15, distance: 150, color: 'orange', orbitSpeed: 0.015, eccentricity: 0.1 },
+    { name: 'Earth', radius: 20, distance: 200, color: 'blue', orbitSpeed: 0.01, eccentricity: 0.0167 },
+    { name: 'Mars', radius: 18, distance: 250, color: 'red', orbitSpeed: 0.008, eccentricity: 0.0934 },
+    { name: 'Jupiter', radius: 30, distance: 350, color: 'brown', orbitSpeed: 0.005, eccentricity: 0.048 },
+    { name: 'Saturn', radius: 28, distance: 450, color: 'yellow', orbitSpeed: 0.004, eccentricity: 0.056 },
+    { name: 'Uranus', radius: 25, distance: 550, color: 'lightblue', orbitSpeed: 0.003, eccentricity: 0.046 },
+    { name: 'Neptune', radius: 24, distance: 650, color: 'blue', orbitSpeed: 0.002, eccentricity: 0.009 }
+];
 
-// Create the moon for the second planet
-const moon = Bodies.circle(planet2.position.x + 50, planet2.position.y, 10, { render: { fillStyle: 'gray' } });
-Composite.add(world, moon);
+planets.forEach(planet => {
+    planet.body = Bodies.circle(sun.position.x + planet.distance, sun.position.y, planet.radius, { render: { fillStyle: planet.color } });
+    Composite.add(world, planet.body);
+});
 
-// Add constraints to make planets and moon orbit
-const orbitRadius1 = 150;
-const orbitRadius2 = 300;
-const orbitRadius3 = 450;
-const moonOrbitRadius = 50;
-const orbitSpeed1 = 0.01;
-const orbitSpeed2 = 0.005;
-const orbitSpeed3 = 0.003;
-const moonOrbitSpeed = 0.02;
-
+// Update planet positions to follow elliptical orbits
 Events.on(engine, 'beforeUpdate', function() {
-    Body.setPosition(planet1, {
-        x: sun.position.x + orbitRadius1 * Math.cos(engine.timing.timestamp * orbitSpeed1),
-        y: sun.position.y + orbitRadius1 * Math.sin(engine.timing.timestamp * orbitSpeed1)
-    });
-    Body.setPosition(planet2, {
-        x: sun.position.x + orbitRadius2 * Math.cos(engine.timing.timestamp * orbitSpeed2),
-        y: sun.position.y + orbitRadius2 * Math.sin(engine.timing.timestamp * orbitSpeed2)
-    });
-    Body.setPosition(planet3, {
-        x: sun.position.x + orbitRadius3 * Math.cos(engine.timing.timestamp * orbitSpeed3),
-        y: sun.position.y + orbitRadius3 * Math.sin(engine.timing.timestamp * orbitSpeed3)
-    });
-    Body.setPosition(moon, {
-        x: planet2.position.x + moonOrbitRadius * Math.cos(engine.timing.timestamp * moonOrbitSpeed),
-        y: planet2.position.y + moonOrbitRadius * Math.sin(engine.timing.timestamp * moonOrbitSpeed)
-    });
-});
-
-// Add meteor on button click
-document.getElementById('addMeteor').addEventListener('click', function() {
-    const meteor = Bodies.circle(Math.random() * window.innerWidth, 0, 10, { label: 'meteor', render: { fillStyle: 'red' } });
-    Body.setVelocity(meteor, { x: (sun.position.x - meteor.position.x) * 0.01, y: (sun.position.y - meteor.position.y) * 0.01 });
-    Composite.add(world, meteor);
-});
-
-// Collision detection
-Events.on(engine, 'collisionStart', (event) => {
-    const pairs = event.pairs;
-    pairs.forEach(pair => {
-        const { bodyA, bodyB } = pair;
-        if (bodyA.label === 'meteor' || bodyB.label === 'meteor') {
-            console.log('Collision detected between meteor and another body!');
-            // Add your collision handling logic here
-        }
-    });
-});
-
-// Enhanced gravity calculation
-const G = 0.001; // Gravitational constant
-
-Events.on(engine, 'beforeUpdate', function() {
-    Composite.allBodies(world).forEach(body => {
-        if (body !== sun && body !== planet1 && body !== planet2 && body !== planet3 && body !== moon) {
-            const dx = sun.position.x - body.position.x;
-            const dy = sun.position.y - body.position.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const forceMagnitude = (G * sun.mass * body.mass) / (distance * distance);
-            const force = {
-                x: (forceMagnitude * dx) / distance,
-                y: (forceMagnitude * dy) / distance
-            };
-            Body.applyForce(body, body.position, force);
-        }
+    planets.forEach(planet => {
+        const angle = engine.timing.timestamp * planet.orbitSpeed;
+        const a = planet.distance;
+        const b = a * Math.sqrt(1 - planet.eccentricity * planet.eccentricity);
+        Body.setPosition(planet.body, {
+            x: sun.position.x + a * Math.cos(angle),
+            y: sun.position.y + b * Math.sin(angle)
+        });
     });
 });
