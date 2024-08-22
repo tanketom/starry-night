@@ -1,13 +1,11 @@
-body {
-    margin: 0;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #000;
-}
-
 canvas {
     display: block;
+    margin: 0 auto;
+    background: #000;
+    width: 100vw;
+    height: 100vh;
+}
+button {
+    display: block;
+    margin: 20px auto;
 }
