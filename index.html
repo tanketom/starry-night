@@ -1,14 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planet and Moons</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <title>Planet with Moons and Meteors</title>
+    <style>
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: #000;
+        }
+        button {
+            display: block;
+            margin: 20px auto;
+        }
+    </style>
 </head>
 <body>
-    <canvas id="world"></canvas>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.17.1/matter.min.js"></script>
+    <button id="addMeteor">Add Meteor</button>
+    <script src="js/matter.min.js"></script>
     <script src="js/script.js"></script>
 </body>
 </html>

@@ -1,88 +1,59 @@
-// Module aliases for easier access
-const Engine = Matter.Engine,
-      Render = Matter.Render,
-      World = Matter.World,
-      Bodies = Matter.Bodies,
-      Body = Matter.Body;
+// Module aliases
+const { Engine, Render, Runner, Bodies, Composite, Body, Events } = Matter;
 
 // Create an engine
 const engine = Engine.create();
+const world = engine.world;
 
-// Create a renderer and attach it to the canvas element
+// Create a renderer
 const render = Render.create({
     element: document.body,
-    canvas: document.getElementById('world'),
     engine: engine,
     options: {
-        width: window.innerWidth,
-        height: window.innerHeight,
-        wireframes: false, // Disable wireframes for solid shapes
-        background: '#000' // Set background color to black
+        width: 800,
+        height: 600,
+        wireframes: false,
+        background: '#000'
     }
 });
 
-// Create the planet (a large blue circle)
-const planet = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 100, {
-    isStatic: true, // Make the planet static so it doesn't move
-    render: {
-        fillStyle: 'blue' // Set the color of the planet
-    }
-});
-
-// Create the first moon (a smaller circle with texture)
-const moon1 = Bodies.circle(window.innerWidth / 2 + 200, window.innerHeight / 2, 30, {
-    render: {
-        sprite: {
-            texture: 'images/moon1.png', // Path to the texture image
-            xScale: 0.6, // Scale the texture to fit the body
-            yScale: 0.6
-        }
-    }
-});
-
-// Create the second moon (another smaller circle with texture)
-const moon2 = Bodies.circle(window.innerWidth / 2 - 200, window.innerHeight / 2, 30, {
-    render: {
-        sprite: {
-            texture: 'images/moon2.png', // Path to the texture image
-            xScale: 0.6, // Scale the texture to fit the body
-            yScale: 0.6
-        }
-    }
-});
-
-// Add the planet and moons to the world
-World.add(engine.world, [planet, moon1, moon2]);
-
-// Run the engine
-Engine.run(engine);
-
-// Run the renderer
 Render.run(render);
+Runner.run(Runner.create(), engine);
 
-// Function to update the positions of the moons
-function updateMoons() {
-    const time = Date.now() * 0.001; // Get the current time in seconds
+// Create the planet
+const planet = Bodies.circle(400, 300, 50, { isStatic: true, render: { fillStyle: 'blue' } });
+Composite.add(world, planet);
 
-    // Update the position of the first moon to orbit the planet
+// Create the moons
+const moon1 = Bodies.circle(300, 300, 20, { render: { fillStyle: 'gray' } });
+const moon2 = Bodies.circle(500, 300, 20, { render: { fillStyle: 'gray' } });
+Composite.add(world, [moon1, moon2]);
+
+// Add constraints to make moons orbit the planet
+const orbitRadius = 100;
+const orbitSpeed = 0.02;
+
+Events.on(engine, 'beforeUpdate', function() {
     Body.setPosition(moon1, {
-        x: window.innerWidth / 2 + 200 * Math.cos(time),
-        y: window.innerHeight / 2 + 200 * Math.sin(time)
+        x: planet.position.x + orbitRadius * Math.cos(engine.timing.timestamp * orbitSpeed),
+        y: planet.position.y + orbitRadius * Math.sin(engine.timing.timestamp * orbitSpeed)
     });
-
-    // Update the position of the second moon to orbit the planet in the opposite direction
     Body.setPosition(moon2, {
-        x: window.innerWidth / 2 + 200 * Math.cos(time + Math.PI),
-        y: window.innerHeight / 2 + 200 * Math.sin(time + Math.PI)
+        x: planet.position.x + orbitRadius * Math.cos(engine.timing.timestamp * orbitSpeed + Math.PI),
+        y: planet.position.y + orbitRadius * Math.sin(engine.timing.timestamp * orbitSpeed + Math.PI)
     });
+});
 
-    // Add rotation to the moons
-    Body.setAngularVelocity(moon1, 0.05); // Rotate the first moon
-    Body.setAngularVelocity(moon2, 0.05); // Rotate the second moon
+// Add meteor on button click
+document.getElementById('addMeteor').addEventListener('click', function() {
+    const meteor = Bodies.circle(Math.random() * 800, 0, 10, { render: { fillStyle: 'red' } });
+    Body.setVelocity(meteor, { x: (400 - meteor.position.x) * 0.01, y: (300 - meteor.position.y) * 0.01 });
+    Composite.add(world, meteor);
+});
 
-    // Request the next animation frame to keep updating the moons' positions
-    requestAnimationFrame(updateMoons);
+// Add stars to the background
+const starCount = 100;
+for (let i = 0; i < starCount; i++) {
+    const star = Bodies.circle(Math.random() * 800, Math.random() * 600, 2, { isStatic: true, render: { fillStyle: 'white' } });
+    Composite.add(world, star);
 }
-
-// Start updating the moons' positions
-updateMoons();
