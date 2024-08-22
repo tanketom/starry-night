@@ -1,5 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap');
 
 canvas {
     display: block;
@@ -9,22 +8,13 @@ canvas {
     height: 100vh;
 }
 
-#starfield {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -2; /* Ensure it's behind everything else */
-}
-
 #simulation {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -1; /* Ensure it's above the starfield but below controls and info */
+    z-index: -1; /* Ensure it's below controls and info */
 }
 
 .controls {
@@ -54,7 +44,7 @@ button span {
     position: absolute;
     text-align: center;
     color: white;
-    font-family: 'Comic Neue', sans-serif;
+    font-family: 'Quicksand', sans-serif;
     z-index: 10;
 }
 
@@ -63,5 +53,5 @@ button span {
     padding: 10px;
     border-radius: 5px;
     color: white;
-    font-family: 'Comic Neue', sans-serif;
+    font-family: 'Quicksand', sans-serif;
 }

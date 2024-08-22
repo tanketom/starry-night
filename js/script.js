@@ -30,24 +30,6 @@ window.addEventListener('resize', () => {
     });
 });
 
-// Create the starfield background
-const starfield = document.getElementById('starfield');
-const starCtx = starfield.getContext('2d');
-starfield.width = window.innerWidth;
-starfield.height = window.innerHeight;
-
-function drawStars() {
-    starCtx.clearRect(0, 0, starfield.width, starfield.height);
-    for (let i = 0; i < 100; i++) {
-        starCtx.fillStyle = 'white';
-        starCtx.beginPath();
-        starCtx.arc(Math.random() * starfield.width, Math.random() * starfield.height, Math.random() * 2, 0, Math.PI * 2);
-        starCtx.fill();
-    }
-}
-
-drawStars();
-
 // Create the sun
 const sun = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 50, { isStatic: true, render: { fillStyle: 'yellow' } });
 Composite.add(world, sun);
@@ -162,10 +144,7 @@ Events.on(engine, 'afterUpdate', function() {
 });
 
 // Add planetary trails
-const trails = [];
-planets.forEach(planet => {
-    trails.push([]);
-});
+const trails = planets.map(() => []);
 
 Events.on(engine, 'afterUpdate', function() {
     planets.forEach((planet, index) => {
