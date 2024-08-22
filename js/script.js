@@ -83,18 +83,15 @@ Events.on(render, 'afterRender', function() {
 // Focus on Earth initially
 let currentFocus = 2; // Index of Earth in the planets array
 function updateFocus() {
-    if (currentFocus === -1) {
-        Render.lookAt(render, {
-            min: { x: 0, y: 0 },
-            max: { x: window.innerWidth, y: window.innerHeight }
-        });
-    } else {
-        const body = currentFocus === -1 ? sun : planets[currentFocus].body;
-        Render.lookAt(render, {
-            min: { x: body.position.x - 200, y: body.position.y - 200 },
-            max: { x: body.position.x + 200, y: body.position.y + 200 }
-        });
-    }
+    const body = currentFocus === -1 ? sun : planets[currentFocus].body;
+    Render.lookAt(render, {
+        min: { x: body.position.x - 200, y: body.position.y - 200 },
+        max: { x: body.position.x + 200, y: body.position.y + 200 }
+    });
+
+    const planetName = currentFocus === -1 ? 'Sun' : planets[currentFocus].name;
+    document.getElementById('planetName').innerText = planetName;
+    document.getElementById('planetInfo').innerText = `This is ${planetName}.`;
 }
 
 document.getElementById('prev').addEventListener('click', () => {
@@ -109,3 +106,14 @@ document.getElementById('next').addEventListener('click', () => {
 
 // Initial focus on Earth
 updateFocus();
+
+// Follow the focused body
+Events.on(engine, 'afterUpdate', function() {
+    if (currentFocus !== -1) {
+        const body = planets[currentFocus].body;
+        Render.lookAt(render, {
+            min: { x: body.position.x - 200, y: body.position.y - 200 },
+            max: { x: body.position.x + 200, y: body.position.y + 200 }
+        });
+    }
+});
