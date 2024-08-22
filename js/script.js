@@ -75,19 +75,6 @@ planets.forEach(planet => {
             moon.planet = planet;
         });
     }
-
-    // Add rings for Saturn and Uranus
-    if (planet.name === 'Saturn' || planet.name === 'Uranus') {
-        planet.ring = Bodies.circle(planet.body.position.x, planet.body.position.y, planet.radius + 10, {
-            isStatic: true,
-            render: {
-                fillStyle: 'transparent',
-                strokeStyle: 'rgba(255, 255, 255, 0.5)',
-                lineWidth: 2
-            }
-        });
-        Composite.add(world, planet.ring);
-    }
 });
 
 // Update planet and moon positions to follow elliptical orbits
@@ -108,14 +95,6 @@ Events.on(engine, 'beforeUpdate', function() {
                     x: planet.body.position.x + moon.distance * Math.cos(moonAngle),
                     y: planet.body.position.y + moon.distance * Math.sin(moonAngle)
                 });
-            });
-        }
-
-        // Update ring position
-        if (planet.ring) {
-            Body.setPosition(planet.ring, {
-                x: planet.body.position.x,
-                y: planet.body.position.y
             });
         }
     });
@@ -238,26 +217,24 @@ Events.on(engine, 'beforeUpdate', function() {
     });
 });
 
-// Add atmospheric effects
-planets.forEach(planet => {
-    if (planet.name === 'Earth' || planet.name === 'Venus') {
-        planet.atmosphere = Bodies.circle(planet.body.position.x, planet.body.position.y, planet.radius + 5, {
-            isStatic: true,
-            render: {
-                fillStyle: 'rgba(255, 255, 255, 0.3)'
-            }
-        });
-        Composite.add(world, planet.atmosphere);
-    }
-});
-
-// Ensure rings follow their respective planets
+// Ensure planets travel counter-clockwise and slower
 Events.on(engine, 'beforeUpdate', function() {
     planets.forEach(planet => {
-        if (planet.ring) {
-            Body.setPosition(planet.ring, {
-                x: planet.body.position.x,
-                y: planet.body.position.y
+        const angle = engine.timing.timestamp * planet.orbitSpeed;
+        const a = planet.distance;
+        const b = a * Math.sqrt(1 - planet.eccentricity * planet.eccentricity);
+        Body.setPosition(planet.body, {
+            x: sun.position.x + a * Math.cos(angle),
+            y: sun.position.y - b * Math.sin(angle) // Counter-clockwise direction
+        });
+
+        if (planet.moons) {
+            planet.moons.forEach(moon => {
+                const moonAngle = engine.timing.timestamp * moon.orbitSpeed;
+                Body.setPosition(moon.body, {
+                    x: planet.body.position.x + moon.distance * Math.cos(moonAngle),
+                    y: planet.body.position.y - moon.distance * Math.sin(moonAngle) // Counter-clockwise direction
+                });
             });
         }
     });
