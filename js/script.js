@@ -10,8 +10,8 @@ const render = Render.create({
     element: document.body,
     engine: engine,
     options: {
-        width: 100%,
-        height: 100%,
+        width: 1000,
+        height: 800,
         wireframes: false,
         background: '#000'
     }
